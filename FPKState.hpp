@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <queue>
 
@@ -18,8 +20,8 @@ class FPKState : public StateBase{
             int zeroi;
             int zeroj;
 
-            for (int i = 0; i < this->currState.size(); i++){
-                for (int j = 0; j < this->currState[0].size(); j++){
+            for (size_t i = 0; i < this->currState.size(); i++){
+                for (size_t j = 0; j < this->currState[0].size(); j++){
                     if (!this->currState[i][j]){
                         zeroi = i;
                         zeroj = j;
@@ -27,8 +29,8 @@ class FPKState : public StateBase{
                 }
             }
             
-            for (int i = 0; i < this->currState.size(); i++){
-                for (int j = 0; j < this->currState[0].size(); j++){
+            for (size_t i = 0; i < this->currState.size(); i++){
+                for (size_t j = 0; j < this->currState[0].size(); j++){
                     if (canJumpTo(zeroi, zeroj, i, j)){
                         swap(this->currState[zeroi][zeroj], this->currState[i][j]);
                         FPKState* child = new FPKState(this->currState, this->g + 1, this, this->knightDistances);
@@ -40,8 +42,8 @@ class FPKState : public StateBase{
         }
 
         bool reachGoalState() override {
-            for (int i = 0; i < this->currState.size(); i++){
-                for (int j = 0; j < this->currState[0].size(); j++){
+            for (size_t i = 0; i < this->currState.size(); i++){
+                for (size_t j = 0; j < this->currState[0].size(); j++){
                     if (currState[i][j] != 0 && (4 * i + j) != (currState[i][j] - 1)){
                         return false;
                     }
@@ -50,9 +52,9 @@ class FPKState : public StateBase{
             return true;
         }
 
-        void Print_Res() override {
+        void Recurse_Print() {
             if (this->parent){
-                this->parent->Print_Res();
+                this->parent->Recurse_Print();
             }
 
             for (auto& i : this->currState){
@@ -62,6 +64,12 @@ class FPKState : public StateBase{
                 cout << endl;
             }
             cout << endl;
+        }
+
+        void Print_Res() override {
+            cout << "length = " << this->g << endl;
+            cout << endl;
+            Recurse_Print();
         }
     
     protected:
@@ -76,8 +84,8 @@ class FPKState : public StateBase{
 
         int calcH(){
             int distSum = 0;
-            for (int i = 0; i < this->currState.size(); i++){
-                for (int j = 0; j < this->currState[0].size(); j++){
+            for (size_t i = 0; i < this->currState.size(); i++){
+                for (size_t j = 0; j < this->currState[0].size(); j++){
                     int currLoc = 4 * i + j;
                     int currNum = this->currState[i][j] - 1;
 
@@ -90,14 +98,6 @@ class FPKState : public StateBase{
             }
 
             return distSum;
-        }
-
-        bool canJumpTo(int x1, int y1, int x2, int y2){
-            if (abs(x1 - x2) == 1 && abs(y1 - y2) == 2 || (abs(x1 - x2) == 2 && abs(y1 - y2) == 1)){
-                return true;
-            }
-
-            return false;
         }
 };
 

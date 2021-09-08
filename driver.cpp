@@ -9,6 +9,7 @@
 #include <boost/program_options.hpp>
 
 #include "FPKState.hpp"
+#include "SuperQueenState.hpp"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -58,7 +59,7 @@ void Print_FPK_State(const vector<vector<int>>& values){
 }
 
 template <typename C, typename T>
-void A_Star_Alg(T* startState){
+void A_Star_Alg(T* startState, bool gc){
     priority_queue<T*, vector<T*>, C> pq;
     pq.push(startState);
 
@@ -67,15 +68,20 @@ void A_Star_Alg(T* startState){
         T* currS = pq.top();
 
         if (currS->reachGoalState()){
-            cout << "length = " << currS->g << endl;
-            cout << endl;
             currS->Print_Res();
             break;
         }
 
         pq.pop();
         currS->generateSuccessor(pq);
-        rmd.push_back(currS);
+
+        if (gc){
+            delete currS;
+        }
+        else{
+            rmd.push_back(currS);
+        }
+        
     }
 
     while (!pq.empty()){
@@ -84,8 +90,10 @@ void A_Star_Alg(T* startState){
         delete res;
     }
 
-    for (T* res : rmd){
-        delete res;
+    if (gc){
+        for (T* res : rmd){
+            delete res;
+        }
     }
 }
 
@@ -105,13 +113,17 @@ int main(int ac, char* av[]){
         vector<vector<int>> startState = Read_FPK_File(inputFilePath);
         vector<int> knightDistances = Read_Knight_Distances();
         assert(knightDistances.size() == 256);
+        
         FPKState* currStart = new FPKState(startState, 0, NULL, &knightDistances);
-        A_Star_Alg<FPKComp>(currStart);
+        A_Star_Alg<FPKComp>(currStart, false);
+        return EXIT_SUCCESS;
     }
     
     if (vm.count("numQueen")){
         int numQueen = vm["numQueen"].as<int>();
-        cout << numQueen << endl;
+        SuperQueenState* currStart = new SuperQueenState(numQueen, 0, {});
+        currStart->f = 0;
+        A_Star_Alg<SQComp>(currStart, true);
     }
     
     return EXIT_SUCCESS;
