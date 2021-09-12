@@ -50,9 +50,12 @@ class SuperQueenState : public StateBase{
             return false;
         }
 
-        void Print_Res(){
-            cout << "nAttacks = " << this->h << endl;
-            cout << endl;
+        void Print_Res(string& inputFilePath){
+            StateBase::Print_Res(inputFilePath);
+            ofstream output;
+            output.open(inputFilePath);
+            output << "nAttacks = " << this->h << endl;
+            output << endl;
 
             vector<vector<int>> grid(numQueen, vector<int>(numQueen));
             for (int i = 0; i < numQueen; i++){
@@ -68,10 +71,12 @@ class SuperQueenState : public StateBase{
 
             for (auto& i : grid){
                 for (auto j : i){
-                    cout << j << " ";
+                    output << j << " ";
                 }
-                cout << endl;
+                output << endl;
             }
+
+            output.close();
         }
 
     protected:

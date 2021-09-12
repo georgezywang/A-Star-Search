@@ -3,16 +3,24 @@
 #include <queue>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include <iostream>
+#include <stdexcept>
 #include <assert.h>
 
-#include <boost/program_options.hpp>
+#ifndef NO_INCLUDE_BOOST
+    #include <boost/program_options.hpp>
+#endif
 
 #include "FPKState.hpp"
 #include "SuperQueenState.hpp"
+#include "driver.hpp"
 
 using namespace std;
-namespace po = boost::program_options;
+
+#ifndef NO_INCLUDE_BOOST
+    namespace po = boost::program_options;
+#endif
 
 vector<vector<int>> Read_FPK_File(const string& fileName){
     ifstream fpkFile(fileName);
@@ -59,7 +67,7 @@ void Print_FPK_State(const vector<vector<int>>& values){
 }
 
 template <typename C, typename T>
-void A_Star_Alg(T* startState, bool gc){
+void A_Star_Alg(T* startState, bool gc, string inputFilePath){
     priority_queue<T*, vector<T*>, C> pq;
     pq.push(startState);
 
@@ -68,7 +76,7 @@ void A_Star_Alg(T* startState, bool gc){
         T* currS = pq.top();
 
         if (currS->reachGoalState()){
-            currS->Print_Res();
+            currS->Print_Res(inputFilePath);
             break;
         }
 
@@ -97,33 +105,68 @@ void A_Star_Alg(T* startState, bool gc){
     }
 }
 
-int main(int ac, char* av[]){
-    po::options_description desc("Allowed options");
-    desc.add_options()
-            ("filePath", po::value<string>(), "path for input file")
-            ("numQueen", po::value<int>(), "number of queens")
-        ;
+void Run_FPK(const string& inputFilePath){
+    vector<vector<int>> startState = Read_FPK_File(inputFilePath);
+    vector<int> knightDistances = Read_Knight_Distances();
+    assert(knightDistances.size() == 256);
     
-    po::variables_map vm;
-    po::store(po::parse_command_line(ac, av, desc), vm);
-    po::notify(vm);
+    FPKState* currStart = new FPKState(startState, 0, NULL, &knightDistances);
+    A_Star_Alg<FPKComp>(currStart, false, inputFilePath);
+}
 
-    if(vm.count("filePath")){
-        string inputFilePath = vm["filePath"].as<string>();
-        vector<vector<int>> startState = Read_FPK_File(inputFilePath);
-        vector<int> knightDistances = Read_Knight_Distances();
-        assert(knightDistances.size() == 256);
+void Run_SQ(const string& inputFilePath){
+    ifstream queenFile(inputFilePath);
+    string line;
+    getline(queenFile, line);
+    int numQueen = stoi(line);
+    assert(numQueen >= 0);
+
+    SuperQueenState* currStart = new SuperQueenState(numQueen, 0, {});
+    currStart->f = 0;
+    A_Star_Alg<SQComp>(currStart, true, inputFilePath);
+}
+
+int main(int ac, char* av[]){
+    #ifndef NO_INCLUDE_BOOST
+        po::options_description desc("Allowed options");
+        desc.add_options()
+                ("filePath", po::value<string>(), "path for input file")
+                ("pSet", po::value<int>(), "problem number")
+            ;
         
-        FPKState* currStart = new FPKState(startState, 0, NULL, &knightDistances);
-        A_Star_Alg<FPKComp>(currStart, false);
-        return EXIT_SUCCESS;
-    }
-    
-    if (vm.count("numQueen")){
-        int numQueen = vm["numQueen"].as<int>();
-        SuperQueenState* currStart = new SuperQueenState(numQueen, 0, {});
-        currStart->f = 0;
-        A_Star_Alg<SQComp>(currStart, true);
+        po::variables_map vm;
+        po::store(po::parse_command_line(ac, av, desc), vm);
+        po::notify(vm);
+
+        if(!vm.count("filePath") || !vm.count("pSet")){
+            throw invalid_argument("Invalid Argument Received");
+        }
+
+        int problem = vm["pSet"].as<int>();
+        string inputFilePath = vm["filePath"].as<string>();
+
+    #else
+        #pragma message("Disabled Boost Program Option")
+
+        assert(ac == 5);
+        if (strcmp(av[1], "--filePath") || strcmp(av[3], "--pSet")){
+            throw invalid_argument("Invalid Argument Received");
+        }
+
+        string inputFilePath = av[2];
+        int problem = atoi(av[4]);
+    #endif
+
+    switch (problem){
+        case 1:
+            Run_FPK(inputFilePath);
+            break;
+        case 2:
+            Run_SQ(inputFilePath);
+            break;
+
+        default:
+            throw invalid_argument("Invalid Argument Received");
     }
     
     return EXIT_SUCCESS;

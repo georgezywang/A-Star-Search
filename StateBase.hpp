@@ -14,7 +14,9 @@ class StateBase{
         template <typename C, typename T>
         void generateSuccessor(priority_queue<T*, vector<T*>, C>& pq){}
         virtual bool reachGoalState(){}
-        virtual void Print_Res(){}
+        virtual void Print_Res(string& inputFilePath){
+            inputFilePath.insert(inputFilePath.find(".txt"), "_output");
+        }
         virtual ~StateBase() = default;
 
     protected:

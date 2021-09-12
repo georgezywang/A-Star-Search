@@ -52,24 +52,29 @@ class FPKState : public StateBase{
             return true;
         }
 
-        void Recurse_Print() {
+        void Recurse_Print(ofstream& output) {
             if (this->parent){
-                this->parent->Recurse_Print();
+                this->parent->Recurse_Print(output);
             }
 
             for (auto& i : this->currState){
                 for (auto j : i){
-                    cout << j << " ";
+                    output << j << " ";
                 }
-                cout << endl;
+                output << endl;
             }
-            cout << endl;
+            output << endl;
         }
 
-        void Print_Res() override {
-            cout << "length = " << this->g << endl;
-            cout << endl;
-            Recurse_Print();
+        void Print_Res(string& inputFilePath) override {
+            StateBase::Print_Res(inputFilePath);
+            ofstream output;
+            output.open(inputFilePath);
+            output << "length = " << this->g << endl;
+            output << endl;
+
+            this->Recurse_Print(output);
+            output.close();
         }
     
     protected:
