@@ -5,6 +5,8 @@ Before compiling, please make sure you have support for `C++17` and the correspo
 ## Compiling
 The compilation has been mostly taken care of. To compile the code from scratch, run `make main` or simply run `make` in the project root directory. The output `driver.o` executable can be found in the root directory of the project folder.
 
+If for some reason, you are not able to get `Boost` installed, run `make WO_Boost` instead, but this version of code will have less sanity checks of the input argument.
+
 To remove the existing executable, run `make clean`.
 
 ## Fifteens Puzzle with Knight’s Moves
