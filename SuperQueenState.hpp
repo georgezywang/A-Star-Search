@@ -3,6 +3,8 @@
 #include <vector>
 #include <queue>
 #include <unordered_set>
+#include <fstream>
+#include <string>
 
 #include "StateBase.hpp"
 
